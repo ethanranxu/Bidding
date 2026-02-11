@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  bidding-app:
+    container_name: bidding-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SERVER=${DB_SERVER}
+      - DB_DATABASE=${DB_DATABASE}
+      - NODE_ENV=production
+    # 如果数据库在宿主机，Linux下通常使用 host.docker.internal 访问宿主机
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
