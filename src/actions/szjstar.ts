@@ -40,7 +40,7 @@ export async function fetchSzJstar(
     const countSql = "SELECT COUNT(*) AS total FROM dbo.SzJstar" + whereSql;
 
     // 按发布时间倒序
-    const dataSql = `SELECT Id, TitleText, Hrefs, PublishTime, IstTuiSong, InsertTime
+    const dataSql = `SELECT Id, ZbType, FromWebSite, address, TitleText, Hrefs, PublishTime, IstTuiSong, InsertTime
        FROM dbo.SzJstar
        ${whereSql}
        ORDER BY PublishTime DESC

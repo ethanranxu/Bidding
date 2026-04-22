@@ -1,5 +1,8 @@
 export interface SzJstar {
   Id: number;
+  ZbType: string | null;
+  FromWebSite: string | null;
+  address: string | null;
   TitleText: string | null;
   Hrefs: string | null;
   PublishTime: string | null;

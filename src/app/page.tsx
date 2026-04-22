@@ -29,7 +29,17 @@ export default function Home() {
   // 过滤状态：默认 60 天，null 表示全部
   const [filterDays, setFilterDays] = useState<number | undefined>(60);
   // 标签筛选状态
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bidding_selected_tags');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+    return [];
+  });
 
   // SzJstar state
   const [szData, setSzData] = useState<SzJstar[]>([]);
@@ -74,11 +84,13 @@ export default function Home() {
 
   // 标签切换处理
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag)
+    setSelectedTags(prev => {
+      const newTags = prev.includes(tag)
         ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
+        : [...prev, tag];
+      localStorage.setItem('bidding_selected_tags', JSON.stringify(newTags));
+      return newTags;
+    });
   };
 
   const loadSzJstar = useCallback(async (pageNum?: number) => {

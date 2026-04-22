@@ -1,20 +1,18 @@
-version: '3'
+version: '3.9'
 
 services:
   bidding-app:
     container_name: bidding-app
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
+    image: bidding-app:latest # 使用已导入的 Docker 镜像
+    restart: always # 自动重启，开机自启
     ports:
-      - "3001:3001"
-    environment:
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_SERVER=${DB_SERVER}
-      - DB_DATABASE=${DB_DATABASE}
-      - NODE_ENV=production
+      - "3001:3001" # 宿主机端口:容器端口
+    env_file:
+      - .env # 所有环境变量统一放在 .env 文件
     # 如果数据库在宿主机，Linux下通常使用 host.docker.internal 访问宿主机
-    # extra_hosts:
-    #   - "host.docker.internal:host-gateway"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # 可选：挂载持久化数据目录
+    # volumes:
+    #   - ./data:/app/data
+    #   - ./logs:/app/logs
