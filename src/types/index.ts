@@ -32,4 +32,5 @@ export interface PaginatedResult<T> {
   data: T[];
   hasMore: boolean;
   total: number;
+  error?: string;
 }

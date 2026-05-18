@@ -99,6 +99,7 @@ export default function Home() {
     setSzLoading(true);
     try {
       const res = await fetchSzJstar(targetPage, debouncedSearch, filterDays, selectedTags);
+      if (res.error) throw new Error(res.error);
       setSzData((prev) => (targetPage === 1 ? res.data : [...prev, ...res.data]));
       setSzHasMore(res.hasMore);
       setSzTotal(res.total);
@@ -116,6 +117,7 @@ export default function Home() {
     setZbLoading(true);
     try {
       const res = await fetchZbArticle(targetPage, debouncedSearch, filterDays, selectedTags);
+      if (res.error) throw new Error(res.error);
       setZbData((prev) => (targetPage === 1 ? res.data : [...prev, ...res.data]));
       setZbHasMore(res.hasMore);
       setZbTotal(res.total);
