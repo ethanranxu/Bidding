@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Search, Sun, Moon, Laptop, X } from "lucide-react";
+import { Search, Sun, Moon, Laptop, X, LogOut } from "lucide-react";
 import { fetchSzJstar } from "@/actions/szjstar";
 import { fetchZbArticle } from "@/actions/zbArticle";
 import InfiniteList from "@/components/InfiniteList";
 import SzJstarCard from "@/components/SzJstarCard";
 import ZbArticleCard from "@/components/ZbArticleCard";
+import LoginForm from "@/components/LoginForm";
+import { getStoredUser, clearStoredUser } from "@/lib/auth";
 import type { SzJstar, ZbArticle } from "@/types";
 
 type TabKey = "szjstar" | "zbArticle";
@@ -55,8 +57,22 @@ export default function Home() {
   const [zbLoading, setZbLoading] = useState(false);
   const [zbTotal, setZbTotal] = useState(0);
 
-  // 挂载后显示主题切换
-  useEffect(() => setMounted(true), []);
+  // 登录认证状态
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+
+  // 挂载后检查登录状态并初始化
+  useEffect(() => {
+    setMounted(true);
+    const stored = getStoredUser();
+    if (stored) {
+      setCurrentUser(stored);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    clearStoredUser();
+    setCurrentUser(null);
+  };
 
   // 搜索防抖
   useEffect(() => {
@@ -79,8 +95,9 @@ export default function Home() {
 
   // 搜索或筛选条件变化时重置
   useEffect(() => {
+    if (!currentUser) return;
     resetAll();
-  }, [debouncedSearch, filterDays, selectedTags, resetAll]);
+  }, [debouncedSearch, filterDays, selectedTags, resetAll, currentUser]);
 
   // 标签切换处理
   const toggleTag = (tag: string) => {
@@ -129,8 +146,9 @@ export default function Home() {
     }
   }, [zbPage, zbLoading, debouncedSearch, filterDays, selectedTags]);
 
-  // 当页面初始化或筛选条件重置导致回到第1页时，同时加载两边的数据
+  // 当页面已登录且回到第1页时，同时加载两边的数据
   useEffect(() => {
+    if (!currentUser) return;
     // 检查 SzJstar 是否需要加载（第1页且无数据时）
     if (szPage === 1 && !szLoading && szData.length === 0) {
       loadSzJstar(1);
@@ -139,9 +157,14 @@ export default function Home() {
     if (zbPage === 1 && !zbLoading && zbData.length === 0) {
       loadZbArticle(1);
     }
-  }, [szPage, zbPage, szLoading, zbLoading, szData.length, zbData.length, loadSzJstar, loadZbArticle]);
+  }, [currentUser, szPage, zbPage, szLoading, zbLoading, szData.length, zbData.length, loadSzJstar, loadZbArticle]);
 
   if (!mounted) return null;
+
+  // 未登录时显示静态登录界面
+  if (!currentUser) {
+    return <LoginForm onLoginSuccess={(user) => setCurrentUser(user)} />;
+  }
 
   return (
     <div className="min-h-screen bg-white transition-colors duration-300 dark:bg-zinc-950">
@@ -193,32 +216,58 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Theme Toggle */}
-          <div className="hidden items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 p-1 sm:flex dark:border-zinc-800 dark:bg-zinc-900">
-            <button
-              onClick={() => setTheme("light")}
-              className={`flex h-7 w-7 items-center justify-center rounded-full transition-all ${theme === "light" ? "bg-white text-indigo-600 shadow-sm" : "text-zinc-500 hover:text-zinc-900"
-                }`}
-              title="明亮模式"
-            >
-              <Sun size={14} />
-            </button>
-            <button
-              onClick={() => setTheme("dark")}
-              className={`flex h-7 w-7 items-center justify-center rounded-full transition-all ${theme === "dark" ? "bg-zinc-800 text-indigo-400 shadow-sm" : "text-zinc-500 hover:text-zinc-100 dark:hover:text-zinc-100"
-                }`}
-              title="黑暗模式"
-            >
-              <Moon size={14} />
-            </button>
-            <button
-              onClick={() => setTheme("system")}
-              className={`flex h-7 w-7 items-center justify-center rounded-full transition-all ${theme === "system" ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 shadow-sm" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                }`}
-              title="跟随系统"
-            >
-              <Laptop size={14} />
-            </button>
+          {/* Controls: Theme & User */}
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle */}
+            <div className="hidden items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 p-1 sm:flex dark:border-zinc-800 dark:bg-zinc-900">
+              <button
+                onClick={() => setTheme("light")}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition-all ${theme === "light" ? "bg-white text-indigo-600 shadow-sm" : "text-zinc-500 hover:text-zinc-900"
+                  }`}
+                title="明亮模式"
+              >
+                <Sun size={14} />
+              </button>
+              <button
+                onClick={() => setTheme("dark")}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition-all ${theme === "dark" ? "bg-zinc-800 text-indigo-400 shadow-sm" : "text-zinc-500 hover:text-zinc-100 dark:hover:text-zinc-100"
+                  }`}
+                title="黑暗模式"
+              >
+                <Moon size={14} />
+              </button>
+              <button
+                onClick={() => setTheme("system")}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition-all ${theme === "system" ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 shadow-sm" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  }`}
+                title="跟随系统"
+              >
+                <Laptop size={14} />
+              </button>
+            </div>
+
+            {/* User Badge & Logout */}
+            <div className="flex items-center gap-2 border-l border-zinc-200 pl-3 dark:border-zinc-800">
+              <div
+                className="flex items-center gap-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300"
+                title={`当前登录账号: ${currentUser}`}
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 font-bold uppercase text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400">
+                  {currentUser.slice(0, 1)}
+                </span>
+                <span className="hidden md:inline font-mono text-zinc-800 dark:text-zinc-200">
+                  {currentUser}
+                </span>
+              </div>
+              <button
+                onClick={handleLogout}
+                title="退出登录"
+                className="flex h-7 items-center gap-1 rounded-lg px-2 text-xs text-zinc-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+              >
+                <LogOut size={14} />
+                <span className="hidden sm:inline">退出</span>
+              </button>
+            </div>
           </div>
         </div>
       </nav>

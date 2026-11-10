@@ -9,6 +9,16 @@ const nextConfig: NextConfig = {
       allowedOrigins: ["bidding.duminet.com", "*.vercel.app"],
     },
   },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/bidding",
+        basePath: false,
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

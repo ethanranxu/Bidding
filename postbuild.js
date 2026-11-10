@@ -39,6 +39,14 @@ if (fs.existsSync(staticSrc)) {
     copyFolderRecursiveSync(staticSrc, staticDest);
 }
 
+// 2.5 复制 .env.local 配置文件到 standalone 根目录
+const envSrc = path.join(__dirname, '.env.local');
+const envDest = path.join(__dirname, '.next', 'standalone', '.env.local');
+if (fs.existsSync(envSrc)) {
+    console.log('正在拷贝 .env.local 环境变量文件...');
+    fs.copyFileSync(envSrc, envDest);
+}
+
 const webConfigContent = `<?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <system.webServer>
